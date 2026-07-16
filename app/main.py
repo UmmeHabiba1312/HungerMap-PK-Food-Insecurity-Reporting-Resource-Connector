@@ -29,6 +29,9 @@ app.include_router(referrals.router)
 @app.on_event("startup")
 def on_startup():
     init_db()
+    from app.database import DATABASE_URL
+    safe_url = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else DATABASE_URL
+    print(f"[HungerMap PK] Connected to database: {safe_url}")
 
 
 @app.get("/", tags=["health"])

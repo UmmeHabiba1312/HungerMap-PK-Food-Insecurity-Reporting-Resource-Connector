@@ -1,6 +1,8 @@
 import os
+from dotenv import load_dotenv
 from sqlmodel import SQLModel, create_engine, Session
 
+load_dotenv()
 # SQLite by default — zero setup, one file, free.
 # To move to Postgres later (e.g. Supabase / Neon free tier), just set
 # DATABASE_URL as an env var, e.g.:
