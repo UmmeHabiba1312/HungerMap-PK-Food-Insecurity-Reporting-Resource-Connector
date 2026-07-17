@@ -1,28 +1,16 @@
 """
-AI Triage Module
-=================
-THIS FILE IS THE AI DEVELOPER'S RESPONSIBILITY — not part of core backend work.
-
-`run_ai_triage()` below is a STUB. It currently returns fake/placeholder data so
-the rest of the backend (and the frontend) can be built and tested against a
-stable contract, without waiting on the real AI integration.
-
-When the AI developer is ready, they should replace the body of
-`run_ai_triage()` with a real call to the Claude API (or whichever model),
-using the case details + list of candidate organisations to decide:
-  - urgency: "High" | "Medium" | "Low"
-  - urgency_reason: short plain-language explanation
-  - matches: 2-3 organisations from the candidates list, each with a reason
-  - letter: a drafted referral letter (150-220 words)
-
-The function signature and return shape below is the CONTRACT the rest of the
-backend depends on — please keep it the same (or update the callers in
-routers/referrals.py if it changes).
+AI Triage Module (Groq Version)
 """
 
+import json
+import os
 from typing import List, TypedDict
 
+from groq import Groq
 from app.models import Case, Organisation
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 class OrgMatch(TypedDict):
@@ -32,42 +20,145 @@ class OrgMatch(TypedDict):
 
 
 class TriageResult(TypedDict):
-    urgency: str            # "High" | "Medium" | "Low"
+    urgency: str
     urgency_reason: str
     matches: List[OrgMatch]
     letter: str
 
 
-def run_ai_triage(case: Case, candidate_organisations: List[Organisation]) -> TriageResult:
-    """
-    STUB — replace with a real Claude API call.
+VALID_URGENCY = {"High", "Medium", "Low"}
 
-    Example of what the real implementation will need to do:
-      1. Build a prompt from `case` fields (situation_notes, household_size, etc.)
-         and the list of `candidate_organisations` (name, focus, area).
-      2. Call the Claude API (see Anthropic docs / API integration notes shared
-         separately) asking for urgency + matches + referral letter as JSON.
-      3. Parse and return that JSON in the TriageResult shape below.
 
-    For now this just returns deterministic placeholder data so the API
-    contract can be tested end-to-end.
-    """
-    top_candidates = candidate_organisations[:2]
+def _build_prompt(case: Case, candidates: List[Organisation]) -> str:
+    org_lines = "\n".join(
+        f'- id={org.id}, name="{org.name}", focus="{org.focus or "N/A"}", area="{org.area or "N/A"}"'
+        for org in candidates
+    )
 
+    return f"""
+You are an AI humanitarian aid coordinator for HungerMap PK.
+
+Your job is to analyze food insecurity cases, determine urgency, recommend the best organisations, and generate a professional referral letter.
+
+CASE DETAILS
+-------------
+City: {case.city}
+Area: {case.area or "N/A"}
+Household Size: {case.household_size or "Unknown"}
+Beneficiary: {case.beneficiary_name or "N/A"}
+
+Situation:
+{case.situation_notes}
+
+AVAILABLE ORGANISATIONS
+-----------------------
+{org_lines}
+
+Instructions:
+
+1. Classify urgency as ONLY one of:
+   - High
+   - Medium
+   - Low
+
+2. Explain the urgency in 1–2 sentences.
+
+3. Select the 2–3 best organisations ONLY from the list provided.
+   Never invent organisations.
+
+4. Generate a professional referral letter (150–200 words).
+
+The referral letter should include:
+- Subject line
+- Greeting to the selected organisation
+- Summary of the family's situation
+- Reason for urgency
+- Request for food/ration assistance
+- Professional closing:
+  "Sincerely,
+   HungerMap PK AI Triage System"
+
+Return ONLY valid JSON in this exact format:
+
+{{
+  "urgency": "High",
+  "urgency_reason": "string",
+  "matches": [
+    {{
+      "organisation_id": 1,
+      "name": "string",
+      "why": "string"
+    }}
+  ],
+  "letter": "string"
+}}
+"""
+
+
+def _fallback_result(case: Case, candidates: List[Organisation]) -> TriageResult:
     return {
         "urgency": "Medium",
-        "urgency_reason": (
-            "PLACEHOLDER — real urgency assessment not yet implemented. "
-            "This is stub data from run_ai_triage()."
-        ),
+        "urgency_reason": "Fallback: AI response unavailable.",
         "matches": [
-            {"organisation_id": org.id, "name": org.name, "why": "PLACEHOLDER match reason."}
-            for org in top_candidates
+            {"organisation_id": org.id, "name": org.name, "why": "Fallback match."}
+            for org in candidates[:2]
         ],
-        "letter": (
-            f"[PLACEHOLDER LETTER]\n\nTo Whom It May Concern,\n\n"
-            f"This is a placeholder referral letter for case {case.case_code}. "
-            f"Real letter generation will be implemented by the AI developer.\n\n"
-            f"Regards,\n{case.volunteer_name}"
-        ),
+        "letter": f"Manual review required for case {case.case_code}.",
     }
+
+
+def run_ai_triage(
+    case: Case, candidate_organisations: List[Organisation]
+) -> TriageResult:
+    prompt = _build_prompt(case, candidate_organisations)
+
+    valid_ids = {org.id for org in candidate_organisations}
+    id_to_name = {org.id: org.name for org in candidate_organisations}
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            temperature=0,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        raw_text = response.choices[0].message.content.strip()
+
+        print("===== GROQ RAW RESPONSE =====")
+        print(raw_text)
+        print("=============================")
+
+        if raw_text.startswith("```"):
+            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+
+        parsed = json.loads(raw_text)
+
+        urgency = parsed.get("urgency")
+        if urgency not in VALID_URGENCY:
+            raise ValueError("Invalid urgency value")
+
+        matches = []
+        for m in parsed.get("matches", []):
+            org_id = m.get("organisation_id")
+            if org_id in valid_ids:
+                matches.append(
+                    {
+                        "organisation_id": org_id,
+                        "name": id_to_name[org_id],
+                        "why": m.get("why", ""),
+                    }
+                )
+
+        if not matches:
+            raise ValueError("No valid organisation matches")
+
+        return {
+            "urgency": urgency,
+            "urgency_reason": parsed.get("urgency_reason", ""),
+            "matches": matches,
+            "letter": parsed.get("letter", ""),
+        }
+
+    except Exception as e:
+        print(f"[ai_triage] Error: {e}")
+        return _fallback_result(case, candidate_organisations)
