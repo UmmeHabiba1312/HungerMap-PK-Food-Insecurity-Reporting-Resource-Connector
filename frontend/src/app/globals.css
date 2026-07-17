@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #F0FDF4;
+  --color-foreground: #064E3B;
+  --color-card-bg: #FFFFFF;
+  --color-border-color: #D1FAE5;
+  --color-accent-lavender: #95A4FC;
+  --color-accent-yellow: #FCD34D;
+  --color-accent-green: #10B981;
+  --color-text-muted: #6EE7B7;
+  
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --animate-shimmer: shimmer 8s linear infinite;
+  --animate-flow-line: flow-line 4s linear infinite;
+  --animate-gradient: gradient 3s ease infinite;
+  --animate-float: float 8s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes flow-line {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    33% { transform: translate(35px, -35px) scale(1.1) rotate(5deg); }
+    66% { transform: translate(-25px, 25px) scale(0.9) rotate(-3deg); }
+  }
+}
+
+:root {
+  background-color: #F0FDF4;
+  color: #064E3B;
+}
+
+body {
+  background-color: #F0FDF4;
+  color: #064E3B;
+  font-family: var(--font-sans);
+}
+
+@layer utilities {
+  .animate-gradient {
+    animation: gradient 3s ease infinite;
+    background-size: 200% auto;
+  }
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+}
+
+/* Custom scrollbar — light green theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ECFDF5;
+}
+::-webkit-scrollbar-thumb {
+  background: #A7F3D0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6EE7B7;
+}
