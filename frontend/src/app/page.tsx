@@ -152,11 +152,17 @@ export default function Home() {
 
               <div className="flex items-center gap-3">
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700 transition-colors px-3 py-2"
                 >
                   Sign In
                   <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href="/signup"
+                  className="hidden sm:inline-flex items-center text-sm font-semibold text-emerald-700 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-300 rounded-full px-4 py-2 transition-colors bg-white/60"
+                >
+                  Sign Up
                 </Link>
                 <Link href="/report" className="relative group">
                   <span className="relative inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-emerald-500/30 hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 group-hover:scale-105">
@@ -196,9 +202,9 @@ export default function Home() {
       </nav>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative pt-44 pb-28 px-5 overflow-hidden">
+      <section className="relative pt-32 md:pt-44 pb-20 md:pb-28 px-5 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left Content */}
             <div className="max-w-2xl">
               <div
@@ -218,7 +224,7 @@ export default function Home() {
               </div>
 
               <h1
-                className={`text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.02] mb-6 transition-all duration-1000 delay-200 ${
+                className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 transition-all duration-1000 delay-200 ${
                   isVisible
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-6"
@@ -250,14 +256,14 @@ export default function Home() {
               </p>
 
               <div
-                className={`flex flex-wrap items-center gap-4 mb-14 transition-all duration-1000 delay-400 ${
+                className={`flex flex-col sm:flex-row flex-wrap items-center gap-4 mb-14 transition-all duration-1000 delay-400 ${
                   isVisible
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-6"
                 }`}
               >
-                <Link href="/report" className="relative group">
-                  <span className="relative inline-flex items-center gap-2.5 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-full shadow-xl shadow-emerald-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-emerald-500/40">
+                <Link href="/report" className="relative group w-full sm:w-auto">
+                  <span className="relative inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-full shadow-xl shadow-emerald-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-emerald-500/40 w-full">
                     <HandHeart className="w-5 h-5" />
                     Report a Case
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -266,7 +272,7 @@ export default function Home() {
 
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2.5 px-8 py-4 bg-white border-2 border-emerald-200 text-emerald-700 font-semibold rounded-full hover:bg-emerald-50 hover:border-emerald-300 transition-all"
+                  className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white border-2 border-emerald-200 text-emerald-700 font-semibold rounded-full hover:bg-emerald-50 hover:border-emerald-300 transition-all w-full sm:w-auto"
                 >
                   <Play className="w-5 h-5" />
                   Launch Dashboard
@@ -534,6 +540,11 @@ export default function Home() {
           </div>
 
           <div className="relative grid md:grid-cols-4 gap-x-12 gap-y-16">
+            {/* Single horizontal connector behind the boxes (desktop) */}
+            <div className="hidden md:block absolute left-[12.5%] right-[12.5%] top-[3.5rem] h-1.5 -translate-y-1/2 bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500 rounded-full shadow-sm z-0" />
+            {/* Single vertical connector behind the boxes (mobile) */}
+            <div className="md:hidden absolute left-1/2 top-[3.5rem] bottom-0 w-1.5 -translate-x-1/2 bg-gradient-to-b from-emerald-400 to-green-500 rounded-full z-0" />
+
             {[
               {
                 step: "01",
@@ -561,17 +572,7 @@ export default function Home() {
               },
             ].map((item, i) => (
               <div key={i} className="relative text-center group">
-                {/* Horizontal wire from this box center to next box (desktop) */}
-                {i < 3 && (
-                  <div className="hidden md:flex absolute items-center justify-center top-14 left-1/2 right-[-3rem] h-0">
-                    <div className="w-full h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-sm" />
-                  </div>
-                )}
-                {/* Vertical wire to next box (mobile) */}
-                {i < 3 && (
-                  <div className="md:hidden absolute left-1/2 top-[7.5rem] bottom-[-4rem] w-1.5 -translate-x-1/2 bg-gradient-to-b from-emerald-400 to-green-500 rounded-full z-0" />
-                )}
-                <div className="relative mb-6 mx-auto w-28 h-28">
+                <div className="relative mb-6 mx-auto w-28 h-28 z-10">
                   <div className="absolute inset-0 bg-emerald-200/50 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative w-28 h-28 rounded-3xl bg-white border-2 border-emerald-200 flex items-center justify-center group-hover:border-emerald-400 group-hover:scale-110 transition-all duration-500 shadow-lg z-10">
                     <item.icon className="w-12 h-12 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-500" />
@@ -580,10 +581,10 @@ export default function Home() {
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-xl font-extrabold mb-3 text-slate-900">
+                <h3 className="relative text-xl font-extrabold mb-3 text-slate-900 z-10">
                   {item.title}
                 </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="relative text-sm text-slate-500 leading-relaxed z-10">
                   {item.desc}
                 </p>
               </div>
@@ -672,7 +673,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 mb-16 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16 max-w-3xl mx-auto">
             {[
               {
                 value: "5+",
@@ -707,7 +708,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
             {[
               {
                 name: "Saylani Welfare",
@@ -882,43 +883,43 @@ export default function Home() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="grid grid-cols-2 gap-5 px-1">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 px-1">
               <img
                 src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=500&fit=crop"
                 alt="Food distribution"
-                className="rounded-3xl w-full h-56 md:h-64 object-cover hover:scale-105 transition-transform duration-500 shadow-lg"
+                className="rounded-3xl w-full h-40 sm:h-56 md:h-64 object-cover hover:scale-105 transition-transform duration-500 shadow-lg"
               />
               <img
                 src="https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&h=500&fit=crop"
                 alt="Volunteers helping"
-                className="rounded-3xl w-full h-56 md:h-64 object-cover mt-8 hover:scale-105 transition-transform duration-500 shadow-lg"
+                className="rounded-3xl w-full h-40 sm:h-56 md:h-64 object-cover mt-8 hover:scale-105 transition-transform duration-500 shadow-lg"
               />
               <img
                 src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=500&fit=crop"
                 alt="Food packages"
-                className="rounded-3xl w-full h-56 md:h-64 object-cover hover:scale-105 transition-transform duration-500 shadow-lg"
+                className="rounded-3xl w-full h-40 sm:h-56 md:h-64 object-cover hover:scale-105 transition-transform duration-500 shadow-lg"
               />
               <img
                 src="https://images.unsplash.com/photo-1593113630400-ea4288922497?w=400&h=500&fit=crop"
                 alt="Community support"
-                className="rounded-3xl w-full h-56 md:h-64 object-cover mt-8 hover:scale-105 transition-transform duration-500 shadow-lg"
+                className="rounded-3xl w-full h-40 sm:h-56 md:h-64 object-cover mt-8 hover:scale-105 transition-transform duration-500 shadow-lg"
               />
             </div>
 
-            <div className="lg:pl-4">
+            <div className="lg:pl-4 mt-8 lg:mt-0">
               <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-100 border border-emerald-200 mb-6">
                 <Trophy className="w-4 h-4 text-emerald-600" />
                 <span className="text-xs font-bold text-emerald-700 tracking-widest uppercase">
                   Our Impact
                 </span>
               </div>
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-slate-900 leading-[1.1]">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-slate-900 leading-[1.1]">
                 Making a{" "}
                 <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                   Real Difference
                 </span>
               </h2>
-              <p className="text-slate-500 text-lg leading-relaxed mb-10 max-w-lg">
+              <p className="text-slate-500 text-base sm:text-lg leading-relaxed mb-8 sm:mb-10 max-w-lg">
                 Every day, our platform connects families in need with
                 organizations that can help. Here's the impact we're making
                 together.
@@ -973,7 +974,7 @@ export default function Home() {
               What People Say
             </span>
           </div>
-          <div className="relative bg-white border border-emerald-100 rounded-3xl p-10 shadow-lg min-h-[220px] flex flex-col justify-center">
+          <div className="relative bg-white border border-emerald-100 rounded-3xl p-6 sm:p-10 shadow-lg min-h-[220px] flex flex-col justify-center">
             {testimonials.map((t, i) => (
               <div
                 key={i}
@@ -1086,7 +1087,7 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/70 via-teal-600/60 to-green-700/70" />
-            <div className="relative p-16 md:p-28 text-center">
+            <div className="relative p-8 sm:p-12 md:p-20 lg:p-28 text-center">
               <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/15 border border-white/20 mb-8 backdrop-blur-sm">
                 <Sparkles className="w-4 h-4 text-white" />
                 <span className="text-xs font-bold text-white tracking-widest uppercase">
@@ -1101,16 +1102,16 @@ export default function Home() {
                 Join hundreds of volunteers and NGOs already using HungerMap PK
                 to coordinate emergency food relief across Pakistan.
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-5">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-5">
                 <Link
                   href="/report"
-                  className="px-10 py-5 bg-white text-emerald-700 font-extrabold rounded-full hover:bg-emerald-50 transition-all text-lg shadow-xl"
+                  className="px-10 py-5 bg-white text-emerald-700 font-extrabold rounded-full hover:bg-emerald-50 transition-all text-lg shadow-xl w-full sm:w-auto"
                 >
                   Report a Case
                 </Link>
                 <Link
                   href="/contact"
-                  className="px-10 py-5 bg-white/10 border-2 border-white/30 text-white font-bold rounded-full hover:bg-white/20 transition-all text-lg"
+                  className="px-10 py-5 bg-white/10 border-2 border-white/30 text-white font-bold rounded-full hover:bg-white/20 transition-all text-lg w-full sm:w-auto"
                 >
                   Contact Team
                 </Link>
