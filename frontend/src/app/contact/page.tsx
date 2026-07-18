@@ -14,6 +14,7 @@ import {
   Leaf,
   Send,
 } from "lucide-react";
+import { contactApi, ApiError } from "@/lib/api";
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -41,7 +42,12 @@ export default function ContactPage() {
     setStatus("idle");
     setMessage("");
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      await contactApi.create({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim() || null,
+        message: form.message.trim(),
+      });
       setStatus("success");
       setMessage(
         "Thank you! Your message has been received. Our team will get back to you shortly."
@@ -49,7 +55,11 @@ export default function ContactPage() {
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
       setStatus("error");
-      setMessage("Something went wrong. Please try again later.");
+      setMessage(
+        err instanceof ApiError
+          ? err.message
+          : "Something went wrong. Please try again later."
+      );
       console.error(err);
     } finally {
       setSubmitting(false);

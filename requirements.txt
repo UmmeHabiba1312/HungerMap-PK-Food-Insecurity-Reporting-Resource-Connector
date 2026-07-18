@@ -1,5 +1,9 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-sqlmodel==0.0.22
+fastapi>=0.115.6
+uvicorn[standard]>=0.31.1
+sqlmodel>=0.0.24
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+httpx>=0.27  # used by app/ai_triage.py to call the Groq API
+# Postgres driver — only needed if you set DATABASE_URL to a postgresql:// URL.
+# SQLite (the default) needs nothing extra. No prebuilt wheels on Python 3.13+,
+# so uncomment only when deploying to Postgres on a supported Python.
+# psycopg2-binary==2.9.9

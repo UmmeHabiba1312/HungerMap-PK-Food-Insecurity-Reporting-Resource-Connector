@@ -9,8 +9,18 @@ load_dotenv()
 #   postgresql://user:password@host:5432/dbname
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hungermap.db")
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
+is_sqlite = DATABASE_URL.startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {}
+
+# For serverless Postgres (e.g. Neon) idle connections get dropped by the server,
+# surfacing as "SSL SYSCALL error: EOF detected" on the next request. pool_pre_ping
+# revalidates a pooled connection before use (reconnecting if it's dead), and
+# pool_recycle proactively discards connections older than the timeout.
+engine_kwargs = {"echo": False, "connect_args": connect_args}
+if not is_sqlite:
+    engine_kwargs.update(pool_pre_ping=True, pool_recycle=300)
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 
 def init_db():

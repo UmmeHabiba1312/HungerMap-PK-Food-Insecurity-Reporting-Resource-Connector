@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import cases, organisations, referrals
+from app.routers import cases, organisations, referrals, contact, stats
 
 app = FastAPI(
     title="HungerMap PK API",
@@ -24,6 +24,8 @@ app.add_middleware(
 app.include_router(cases.router)
 app.include_router(organisations.router)
 app.include_router(referrals.router)
+app.include_router(contact.router)
+app.include_router(stats.router)
 
 
 @app.on_event("startup")

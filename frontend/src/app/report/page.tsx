@@ -17,8 +17,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { casesApi, API_URL, ApiError } from "@/lib/api";
 
 const CITIES = [
   "Karachi",
@@ -76,44 +75,32 @@ export default function ReportPage() {
     setStatus("idle");
     setMessage("");
 
-    const payload = {
-      volunteer_name: form.volunteer_name.trim(),
-      volunteer_phone: form.volunteer_phone.trim() || null,
-      beneficiary_name: form.beneficiary_name.trim() || null,
-      beneficiary_phone: form.beneficiary_phone.trim() || null,
-      city: form.city,
-      area: form.area.trim() || null,
-      household_size: form.household_size
-        ? Number(form.household_size)
-        : null,
-      situation_notes: form.situation_notes.trim(),
-    };
-
     try {
-      const res = await fetch(`${API_URL}/cases/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const data = await casesApi.create({
+        volunteer_name: form.volunteer_name.trim(),
+        volunteer_phone: form.volunteer_phone.trim() || null,
+        beneficiary_name: form.beneficiary_name.trim() || null,
+        beneficiary_phone: form.beneficiary_phone.trim() || null,
+        city: form.city,
+        area: form.area.trim() || null,
+        household_size: form.household_size
+          ? Number(form.household_size)
+          : null,
+        situation_notes: form.situation_notes.trim(),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setCaseCode(data.case_code || "");
-        setStatus("success");
-        setMessage(
-          "Case submitted successfully. Our team will triage and match it with a nearby NGO."
-        );
-        setForm(initialForm);
-      } else {
-        const err = await res.json().catch(() => null);
-        setStatus("error");
-        setMessage(err?.detail || "Failed to submit case. Please try again.");
-      }
+      setCaseCode(data.case_code || "");
+      setStatus("success");
+      setMessage(
+        "Case submitted successfully. Our team will triage and match it with a nearby NGO."
+      );
+      setForm(initialForm);
     } catch (err) {
       setStatus("error");
       setMessage(
-        "Could not reach the server. Make sure the backend is running at " +
-          API_URL
+        err instanceof ApiError
+          ? err.message
+          : "Could not reach the server at " + API_URL
       );
       console.error(err);
     } finally {

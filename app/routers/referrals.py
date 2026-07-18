@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -47,19 +48,36 @@ def triage_case(case_id: int, session: Session = Depends(get_session)):
     case.urgency = result["urgency"]
     case.urgency_reason = result["urgency_reason"]
     case.status = CaseStatus.triaged
+    case.updated_at = datetime.utcnow()
     session.add(case)
 
-    # Save the referral letter against the top-matched organisation
-    top_match = result["matches"][0]
-    referral = Referral(
+    # Remove any prior referrals for this case so re-triage doesn't stack duplicates.
+    for old in session.exec(select(Referral).where(Referral.case_id == case.id)).all():
+        session.delete(old)
+
+    # Save the referral letter against the top match, plus a short note for the
+    # other suggested organisations so they show up in the Referrals view.
+    matches = result["matches"]
+    top_match = matches[0]
+    top_referral = Referral(
         case_id=case.id,
         organisation_id=top_match["organisation_id"],
         letter_text=result["letter"],
     )
-    session.add(referral)
+    session.add(top_referral)
+
+    for m in matches[1:]:
+        session.add(
+            Referral(
+                case_id=case.id,
+                organisation_id=m["organisation_id"],
+                letter_text=f"Alternative match — {m['name']}: {m['why']}",
+            )
+        )
+
     session.commit()
-    session.refresh(referral)
-    return referral
+    session.refresh(top_referral)
+    return top_referral
 
 
 @router.get("/cases/{case_id}/referrals", response_model=List[ReferralRead])
