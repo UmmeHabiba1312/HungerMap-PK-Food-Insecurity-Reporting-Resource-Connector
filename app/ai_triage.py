@@ -17,10 +17,13 @@ import json
 import os
 import re
 from typing import List, TypedDict
-
+from groq import Groq
 import httpx
 
 from app.models import Case, Organisation
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 class OrgMatch(TypedDict):
@@ -30,7 +33,7 @@ class OrgMatch(TypedDict):
 
 
 class TriageResult(TypedDict):
-    urgency: str            # "High" | "Medium" | "Low"
+    urgency: str
     urgency_reason: str
     matches: List[OrgMatch]
     letter: str
@@ -158,6 +161,67 @@ def _sanitise_result(data: dict, case: Case, orgs: List[Organisation]) -> Triage
     if len(letter) < 40:
         letter = _draft_letter(case, valid_ids[matches[0]["organisation_id"]], urgency)
 
+    return f"""
+You are an AI humanitarian aid coordinator for HungerMap PK.
+
+Your job is to analyze food insecurity cases, determine urgency, recommend the best organisations, and generate a professional referral letter.
+
+CASE DETAILS
+-------------
+City: {case.city}
+Area: {case.area or "N/A"}
+Household Size: {case.household_size or "Unknown"}
+Beneficiary: {case.beneficiary_name or "N/A"}
+
+Situation:
+{case.situation_notes}
+
+AVAILABLE ORGANISATIONS
+-----------------------
+{org_lines}
+
+Instructions:
+
+1. Classify urgency as ONLY one of:
+   - High
+   - Medium
+   - Low
+
+2. Explain the urgency in 1–2 sentences.
+
+3. Select the 2–3 best organisations ONLY from the list provided.
+   Never invent organisations.
+
+4. Generate a professional referral letter (150–200 words).
+
+The referral letter should include:
+- Subject line
+- Greeting to the selected organisation
+- Summary of the family's situation
+- Reason for urgency
+- Request for food/ration assistance
+- Professional closing:
+  "Sincerely,
+   HungerMap PK AI Triage System"
+
+Return ONLY valid JSON in this exact format:
+
+{{
+  "urgency": "High",
+  "urgency_reason": "string",
+  "matches": [
+    {{
+      "organisation_id": 1,
+      "name": "string",
+      "why": "string"
+    }}
+  ],
+  "letter": "string"
+}}
+"""
+
+
+def _fallback_result(case: Case, candidates: List[Organisation]) -> TriageResult:
     return {
         "urgency": urgency,
         "urgency_reason": reason,
