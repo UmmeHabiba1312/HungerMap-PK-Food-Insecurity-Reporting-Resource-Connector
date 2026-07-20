@@ -11,11 +11,20 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Allow the frontend (running on a different port/domain during dev) to call this API.
-# Tighten this to your real frontend domain(s) before going to production.
+# Allow the deployed frontend (Vercel) and local dev origins to call this API.
+# NOTE: allow_credentials=True requires an explicit origin list — "*" is rejected
+# by browsers when credentials are allowed, so we never use "*" here.
+ALLOWED_ORIGINS = [
+    "https://hunger-pk.vercel.app",   # production frontend
+    "http://localhost:3000",          # frontend dev server
+    "http://localhost:8000",          # backend dev (docs etc.)
+    # Add Vercel preview URLs here if you use preview deployments, e.g.:
+    # "https://hunger-pk-git-*.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +40,14 @@ app.include_router(stats.router)
 @app.on_event("startup")
 def on_startup():
     init_db()
+    # Seed demo organisations on first boot (idempotent — skips if already present).
+    # Keeps the deployed DB useful even though the local hungermap.db is gitignored.
+    try:
+        from app.seed_data import seed
+
+        seed()
+    except Exception as exc:  # never let seeding break startup
+        print(f"[HungerMap PK] Seeding skipped: {exc}")
     from app.database import DATABASE_URL
     safe_url = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else DATABASE_URL
     print(f"[HungerMap PK] Connected to database: {safe_url}")

@@ -1,0 +1,24 @@
+# HungerMap PK — BACKEND ONLY deploy.
+# The frontend lives in /frontend and is intentionally NOT deployed by this file.
+# Render only runs the Python build/start commands below, so /frontend is left untouched.
+services:
+  - type: web
+    name: hungermap-backend
+    runtime: python
+    plan: free
+    # region: pick the one nearest you: oregon | ohio | frankfurt | singapore | virginia
+    region: oregon
+    # Deploy branch — change if your default branch is not "main".
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      # Optional: AI triage uses Groq. Leave empty to use the built-in rule-based fallback.
+      # Set this value in the Render dashboard (it is not stored in git).
+      - key: GROQ_API_KEY
+        sync: false
+      # Optional: leave unset to use the default SQLite file. For persistent data,
+      # set a Postgres URL here (e.g. from Neon/Supabase free tier).
+      - key: DATABASE_URL
+        sync: false
