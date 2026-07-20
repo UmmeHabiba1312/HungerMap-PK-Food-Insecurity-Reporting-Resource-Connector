@@ -13,8 +13,9 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from mangum import Mangum
-from app.main import app
+from app.main import app as fastapi_app
 
 # lifespan="off": serverless functions don't support startup/shutdown events
 # reliably; DB init + seeding are done at import time inside app.main instead.
-handler = Mangum(app, lifespan="off")
+# Exposed as `app` so Vercel's Python runtime detects the ASGI entrypoint.
+app = Mangum(fastapi_app, lifespan="off")
