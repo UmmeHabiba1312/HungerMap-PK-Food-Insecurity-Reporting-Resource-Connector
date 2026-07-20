@@ -12,6 +12,10 @@ __pycache__/
 venv/
 .pytest_cache/
 
+# Local SQLite database (deployed app creates its own; never commit it)
+hungermap.db
+hungermap.db-*
+
 # Environments
 .env
 .env.local
