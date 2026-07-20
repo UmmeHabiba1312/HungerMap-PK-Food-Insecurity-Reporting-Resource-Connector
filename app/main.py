@@ -37,20 +37,31 @@ app.include_router(contact.router)
 app.include_router(stats.router)
 
 
-@app.on_event("startup")
-def on_startup():
-    init_db()
-    # Seed demo organisations on first boot (idempotent — skips if already present).
-    # Keeps the deployed DB useful even though the local hungermap.db is gitignored.
-    try:
-        from app.seed_data import seed
+def ensure_db():
+    """Create tables and seed demo orgs. Idempotent — safe to run on every boot.
 
+    Also called at import time so serverless platforms (Vercel) have a ready DB,
+    since their ASGI lifespan is disabled and the startup event never fires.
+    """
+    from app.database import DATABASE_URL, init_db
+    from app.seed_data import seed
+
+    init_db()
+    try:
         seed()
     except Exception as exc:  # never let seeding break startup
         print(f"[HungerMap PK] Seeding skipped: {exc}")
-    from app.database import DATABASE_URL
     safe_url = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else DATABASE_URL
     print(f"[HungerMap PK] Connected to database: {safe_url}")
+
+
+# Run at import time for serverless (Vercel) cold starts.
+ensure_db()
+
+
+@app.on_event("startup")
+def on_startup():
+    ensure_db()
 
 
 @app.get("/", tags=["health"])

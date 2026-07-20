@@ -1,0 +1,11 @@
+# Backend-only Vercel deploy: keep the function bundle lean and exclude the
+# Next.js frontend (deployed separately at hunger-pk.vercel.app) and local cruft.
+frontend/
+memory/
+.venv/
+venv/
+.env
+.git/
+__pycache__/
+*.pyc
+*.db

@@ -3,7 +3,10 @@ uvicorn[standard]>=0.31.1
 sqlmodel>=0.0.24
 python-dotenv==1.0.1
 httpx>=0.27  # used by app/ai_triage.py to call the Groq API
-# Postgres driver — only needed if you set DATABASE_URL to a postgresql:// URL.
-# SQLite (the default) needs nothing extra. No prebuilt wheels on Python 3.13+,
-# so uncomment only when deploying to Postgres on a supported Python.
-# psycopg2-binary==2.9.9
+mangum>=0.17  # ASGI -> Vercel serverless adapter (only used when deploying on Vercel)
+
+# Postgres driver — required when DATABASE_URL is a postgresql:// URL (e.g. Neon).
+# Uses a flexible floor so wheels resolve on Python 3.12 (Vercel) and local dev.
+# NOTE: building psycopg2 on Python 3.13+ can fail; on those interpreters rely on a
+# globally-installed psycopg2 and comment this line back out.
+psycopg2-binary>=2.9.10
